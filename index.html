@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7]>
+<html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8]>
+<html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<html lang="en">
+  <!--<![endif]-->
+  <head>
+    <!-- Basic Page Needs
+    ================================================== -->
+    <meta charset="utf-8" />
+    <title>FNA Wizard</title>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta property="og:title" content="FNA Wizard 3" />
+    <meta
+      property="og:url"
+      content="https://web.zybrzeus.com/master/fnawizard3/"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:description" content="FNA Wizard 3" />
+    <meta http-equiv="Cache-control" content="public" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="FNA Wizard 3" />
+    <script>
+      site_id = "67869f9a13e0772f51ebf14a";
+      site_owner = "master";
+    </script>
+    <script src="https://js.stripe.com/v2/"></script>
+    <script src="https://player.vimeo.com/api/player.js"></script>
+    <meta name="author" content="" />
+    <!-- Mobile Specific Metas
+================================================== -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta http-equiv="x-ua-compatible" content="IE=9" />
+    <!-- Font Awesome -->
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+    <!--headerIncludes-->
+    <!-- CSS
+================================================== -->
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/mq.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/menu.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/flat-ui-slider.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/base.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/skeleton.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/landings.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/main.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/landings_layouts.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/box.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/pixicon.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/stylesheets/bs-model.css"
+    />
+    <link
+      href="https://zybrzeus.com/builder/elements/assets/css/animations.min.css"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div id="page" class="page">
+      <!-- Chart.js -->
+
+      <!-- jsPDF -->
+
+      <script
+        type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+      ></script>
+      <script
+        type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+      ></script>
+      <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+          (function () {
+            var currentStep = 1;
+            var totalSteps = 8;
+            var stepElements = [];
+            for (var i = 1; i <= totalSteps; i++) {
+              var el = document.getElementById("step" + i);
+              if (el) stepElements.push(el);
+            }
+
+            function showStep(step) {
+              stepElements.forEach(function (s) {
+                s.classList.remove("active");
+              });
+              if (stepElements[step - 1]) {
+                stepElements[step - 1].classList.add("active");
+              }
+              updateProgressBar(step);
+
+              // <-- NEW: Show/hide spouseAnnualIncomeContainer in Step 5
+              if (step === 5) {
+                var ms = document.getElementById("maritalStatus").value;
+                var spouseAnnualContainer = document.getElementById(
+                  "spouseAnnualIncomeContainer"
+                );
+                if (ms === "Married") {
+                  spouseAnnualContainer.style.display = "block";
+                  // also auto-fill spouse annual income
+                  autoFillAnnualIncomeDime();
+                } else {
+                  spouseAnnualContainer.style.display = "none";
+                }
+              }
+            }
+
+            function updateProgressBar(step) {
+              var steps = document.querySelectorAll(".progress-step");
+              steps.forEach(function (circle, idx) {
+                if (idx < step) circle.classList.add("active");
+                else circle.classList.remove("active");
+              });
+            }
+
+            window.nextStep = function () {
+              if (currentStep < totalSteps) {
+                currentStep++;
+                // Step 5 => auto-fill DIME
+                if (currentStep === 5) {
+                  autoFillDimeDebt();
+                  var dimeIncome = document.getElementById("dimeIncome");
+                  if (
+                    dimeIncome &&
+                    (!dimeIncome.value || dimeIncome.value <= 0)
+                  ) {
+                    dimeIncome.value = 10;
+                  }
+                  autoFillMortgage();
+                  autoFillAnnualIncomeDime();
+                }
+                showStep(currentStep);
+                if (currentStep === totalSteps) {
+                  generateResults();
+                }
+              }
+            };
+
+            window.prevStep = function () {
+              if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+              }
+            };
+
+            showStep(currentStep);
+
+            // Clickable progress steps
+            document
+              .querySelectorAll(".progress-step")
+              .forEach(function (stepEl, i) {
+                stepEl.addEventListener("click", function () {
+                  var targetStep = i + 1;
+                  currentStep = targetStep;
+                  showStep(targetStep);
+                  if (targetStep === totalSteps) {
+                    generateResults();
+                  }
+                });
+              });
+
+            // Marital status logic
+            window.toggleSpouseIncomeField = function () {
+              var ms = document.getElementById("maritalStatus").value;
+              var spouseField = document.getElementById("spouseNetIncomeGroup");
+              if (ms === "Married") {
+                // only show if NOT using detailed flow
+                var isDetailed =
+                  document.getElementById("toggleDetailedFlow").checked;
+                spouseField.style.display = isDetailed ? "none" : "block";
+              } else {
+                spouseField.style.display = "none";
+              }
+            };
+
+            /******************************************************************************
+    EXCLUDE #clientName FROM REAL-TIME COMMA FORMATTING
+   ******************************************************************************/
+            var allNumberInputs = document.querySelectorAll(
+              'input[type="text"]:not(#clientName)'
+            );
+            allNumberInputs.forEach(function (input) {
+              input.addEventListener("input", function (e) {
+                var val = e.target.value.replace(/,/g, "").trim();
+                if (!val || isNaN(val)) {
+                  e.target.value = "";
+                  return;
+                }
+                var floatVal = parseFloat(val);
+                e.target.value = floatVal.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                });
+              });
+            });
+
+            /******************************************************************************
+    DETAILED CASH FLOW LOGIC
+   ******************************************************************************/
+            window.toggleDetailedFlow = function () {
+              var chk = document.getElementById("toggleDetailedFlow");
+              var detailSec = document.getElementById("detailedCashFlow");
+              var ms = document.getElementById("maritalStatus").value;
+
+              // If detailed is on -> hide simple spouse net income
+              if (ms === "Married") {
+                document.getElementById("spouseNetIncomeGroup").style.display =
+                  chk.checked ? "none" : "block";
+              }
+
+              if (chk.checked) detailSec.classList.add("show");
+              else detailSec.classList.remove("show");
+              recalcDetailedCashFlow();
+            };
+
+            window.recalcDetailedCashFlow = function () {
+              var chk = document.getElementById("toggleDetailedFlow");
+              if (!chk.checked) {
+                updateRetirementIncome();
+                return;
+              }
+              var getVal = function (id) {
+                var el = document.getElementById(id);
+                if (!el) return 0;
+                var raw = el.value.replace(/,/g, "");
+                return parseFloat(raw) || 0;
+              };
+              var yourGross = getVal("yourGross");
+              var yourFedTax = getVal("yourFedTax");
+              var yourStateTax = getVal("yourStateTax");
+              var yourLocalTax = getVal("yourLocalTax");
+              var yourOtherTax = getVal("yourOtherTax");
+              var yourFica = getVal("yourFica");
+              var yourMedicare = getVal("yourMedicare");
+              var yourInsurance = getVal("yourInsurance");
+              var yourRetirement = getVal("yourRetirement");
+              var yourTaxTotal =
+                yourFedTax + yourStateTax + yourLocalTax + yourOtherTax;
+              var yourNet = yourGross - yourTaxTotal;
+
+              var spouseGross = getVal("spouseGross");
+              var spouseFedTax = getVal("spouseFedTax");
+              var spouseStateTax = getVal("spouseStateTax");
+              var spouseLocalTax = getVal("spouseLocalTax");
+              var spouseOtherTax = getVal("spouseOtherTax");
+              var spouseFica = getVal("spouseFica");
+              var spouseMedicare = getVal("spouseMedicare");
+              var spouseInsurance = getVal("spouseInsurance");
+              var spouseRetirement = getVal("spouseRetirement");
+              var spouseTaxTotal =
+                spouseFedTax + spouseStateTax + spouseLocalTax + spouseOtherTax;
+              var spouseNet = spouseGross - spouseTaxTotal;
+
+              var otherIncome = getVal("otherIncome");
+              var totalNet = yourNet + spouseNet + otherIncome;
+
+              var totalRetirement = yourRetirement + spouseRetirement;
+              document.getElementById("currentSavingsMonthly").value =
+                totalRetirement.toLocaleString();
+
+              var detMortgage = getVal("detMortgage");
+              var detAuto = getVal("detAuto");
+              var detCreditCards = getVal("detCreditCards");
+              var detUtilities = getVal("detUtilities");
+              var detFood = getVal("detFood");
+              var detIns = getVal("detInsurance");
+              var detMaint = getVal("detMaintenance");
+
+              var yourFicaMedIns = yourFica + yourMedicare + yourInsurance;
+              var spouseFicaMedIns =
+                spouseFica + spouseMedicare + spouseInsurance;
+              var totalExpenses =
+                yourFicaMedIns +
+                spouseFicaMedIns +
+                detMortgage +
+                detAuto +
+                detCreditCards +
+                detUtilities +
+                detFood +
+                detIns +
+                detMaint;
+
+              document.getElementById("monthlyExpenses").value =
+                totalExpenses.toLocaleString();
+              document.getElementById("monthlyIncome").value =
+                totalNet.toLocaleString();
+
+              var discretionaryIncome = totalNet - totalExpenses;
+              var discEl = document.getElementById("detDiscretionary");
+              discEl.value = discretionaryIncome.toLocaleString();
+
+              updateRetirementIncome();
+            };
+
+            /******************************************************************************
+    AUTO-FILL LOGIC
+   ******************************************************************************/
+            window.updateRetirementIncome = function () {
+              var retAgeEl = document.getElementById("retirementAge");
+              var cliAgeEl = document.getElementById("clientAge");
+              var expEl = document.getElementById("monthlyExpenses");
+              if (!retAgeEl || !cliAgeEl || !expEl) return;
+
+              var retAge = parseFloat(retAgeEl.value.replace(/,/g, "")) || 65;
+              var cliAge = parseFloat(cliAgeEl.value.replace(/,/g, "")) || 0;
+              var monthlyExp = parseFloat(expEl.value.replace(/,/g, "")) || 0;
+
+              if (retAge <= cliAge || monthlyExp <= 0) {
+                document.getElementById("desiredRetIncome").value = "";
+                return;
+              }
+              var yearsToRetire = retAge - cliAge;
+              var inflated = monthlyExp * Math.pow(1.035, yearsToRetire);
+              var finalNeeded = inflated * 0.7;
+              document.getElementById("desiredRetIncome").value =
+                Math.round(finalNeeded).toLocaleString();
+            };
+
+            window.autoFillEducationCost = function () {
+              var depsEl = document.getElementById("dependents");
+              var eduEl = document.getElementById("educationCost");
+              if (!depsEl || !eduEl) return;
+              var raw = depsEl.value.replace(/,/g, "");
+              var deps = parseFloat(raw) || 0;
+              var costPer = 108000;
+              var totalEduCost = costPer * deps;
+              eduEl.value = totalEduCost.toLocaleString();
+            };
+
+            window.updateAnnualIncome = function () {
+              var mIncEl = document.getElementById("monthlyIncome");
+              var annualIncEl = document.getElementById("annualIncome");
+              if (!mIncEl || !annualIncEl) return;
+              var raw = mIncEl.value.replace(/,/g, "");
+              var mIncome = parseFloat(raw) || 0;
+              annualIncEl.value = (mIncome * 12).toLocaleString();
+            };
+
+            function autoFillAnnualIncomeDime() {
+              // User's annual income
+              var mIncEl = document.getElementById("monthlyIncome");
+              var aIncEl = document.getElementById("annualIncome");
+              if (!mIncEl || !aIncEl) return;
+              var raw = mIncEl.value.replace(/,/g, "");
+              var mIncome = parseFloat(raw) || 0;
+              var annual = mIncome * 12;
+              aIncEl.value = annual.toLocaleString();
+
+              // <-- NEW: spouse annual income
+              var spouseAnnualEl =
+                document.getElementById("spouseAnnualIncome");
+              if (!spouseAnnualEl) return;
+
+              var ms = document.getElementById("maritalStatus").value;
+              var isDetailedOn =
+                document.getElementById("toggleDetailedFlow").checked;
+              var spouseAnnual = 0;
+
+              if (ms === "Married") {
+                if (isDetailedOn) {
+                  // if detailed, spouseGross from Step 2
+                  var sg = document.getElementById("spouseGross");
+                  var grossStr = sg ? sg.value.replace(/,/g, "") : "0";
+                  var spouseGrossVal = parseFloat(grossStr) || 0;
+                  spouseAnnual = spouseGrossVal * 12;
+                } else {
+                  // not detailed
+                  var spn = document.getElementById("spouseNetIncome");
+                  var netStr = spn ? spn.value.replace(/,/g, "") : "0";
+                  var spouseNetVal = parseFloat(netStr) || 0;
+                  spouseAnnual = spouseNetVal * 12;
+                }
+              }
+              spouseAnnualEl.value = spouseAnnual.toLocaleString();
+            }
+
+            function autoFillDimeDebt() {
+              var mort =
+                parseFloat(
+                  (document.getElementById("mortgageDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var cc =
+                parseFloat(
+                  (
+                    document.getElementById("creditCardDebt").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var autoLoan =
+                parseFloat(
+                  (document.getElementById("autoLoanDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var student =
+                parseFloat(
+                  (
+                    document.getElementById("studentLoanDebt").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var totalDebt = mort + cc + autoLoan + student;
+              document.getElementById("dimeDebt").value =
+                totalDebt.toLocaleString();
+            }
+            function autoFillMortgage() {
+              var val =
+                parseFloat(
+                  (document.getElementById("mortgageDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              document.getElementById("mortgageBalance").value =
+                val.toLocaleString();
+            }
+
+            /******************************************************************************
+    FINANCIAL CALCS
+   ******************************************************************************/
+            function futureValue(
+              lumpsum,
+              monthlyContribution,
+              years,
+              annualRate = 0.07
+            ) {
+              var fvLump = lumpsum * Math.pow(1 + annualRate, years);
+              var annualContrib = monthlyContribution * 12;
+              var fvAnnuity =
+                annualContrib *
+                ((Math.pow(1 + annualRate, years) - 1) / annualRate);
+              return fvLump + fvAnnuity;
+            }
+            function solveForMonthlyContribution(
+              lumpsum,
+              years,
+              needed,
+              annualRate = 0.07
+            ) {
+              var low = 0,
+                high = 100000;
+              while (low < high) {
+                var mid = (low + high) / 2;
+                var trial = futureValue(lumpsum, mid, years, annualRate);
+                if (Math.abs(trial - needed) < 100) return mid;
+                else if (trial < needed) low = mid + 1;
+                else high = mid - 1;
+              }
+              return Math.round(low);
+            }
+
+            var cashFlowChart,
+              debtChart,
+              emergencyChart,
+              insuranceChart,
+              assetChart,
+              nestEggChart;
+
+            /******************************************************************************
+    GENERATE RESULTS
+   ******************************************************************************/
+            window.generateResults = function () {
+              var clientName = (
+                document.getElementById("clientName").value || ""
+              ).trim();
+              var maritalStatus =
+                document.getElementById("maritalStatus").value || "";
+              var clientAge =
+                parseFloat(
+                  (document.getElementById("clientAge").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var retirementAge =
+                parseFloat(
+                  (
+                    document.getElementById("retirementAge").value || ""
+                  ).replace(/,/g, "")
+                ) || 65;
+              var monthlyExpenses =
+                parseFloat(
+                  (
+                    document.getElementById("monthlyExpenses").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var monthlyIncome =
+                parseFloat(
+                  (
+                    document.getElementById("monthlyIncome").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var currentSavingsMonthly =
+                parseFloat(
+                  (
+                    document.getElementById("currentSavingsMonthly").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var desiredRetIncome =
+                parseFloat(
+                  (
+                    document.getElementById("desiredRetIncome").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+
+              var mortgageDebt =
+                parseFloat(
+                  (document.getElementById("mortgageDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var creditCardDebt =
+                parseFloat(
+                  (
+                    document.getElementById("creditCardDebt").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var autoLoanDebt =
+                parseFloat(
+                  (document.getElementById("autoLoanDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var studentLoanDebt =
+                parseFloat(
+                  (
+                    document.getElementById("studentLoanDebt").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+
+              // DIME
+              var existingCoverage =
+                parseFloat(
+                  (
+                    document.getElementById("existingCoverage").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var spouseExistingCoverage =
+                parseFloat(
+                  (
+                    document.getElementById("spouseExistingCoverage").value ||
+                    ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var dimeDebt =
+                parseFloat(
+                  (document.getElementById("dimeDebt").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var annualIncome =
+                parseFloat(
+                  (document.getElementById("annualIncome").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var dimeIncomeYears =
+                parseFloat(
+                  (document.getElementById("dimeIncome").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var mortgageBalance =
+                parseFloat(
+                  (
+                    document.getElementById("mortgageBalance").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var educationCost =
+                parseFloat(
+                  (
+                    document.getElementById("educationCost").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+
+              // NEW: Read spouseAnnualIncome from Step 5 field
+              var spouseAnnualIncome = 0;
+              if (maritalStatus === "Married") {
+                var spIncEl = document.getElementById("spouseAnnualIncome");
+                if (spIncEl) {
+                  var rawVal = spIncEl.value.replace(/,/g, "");
+                  spouseAnnualIncome = parseFloat(rawVal) || 0;
+                }
+              }
+
+              // Build
+              var existing401k =
+                parseFloat(
+                  (document.getElementById("existing401k").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var existingIRA =
+                parseFloat(
+                  (document.getElementById("existingIRA").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+              var existingBrokerage =
+                parseFloat(
+                  (
+                    document.getElementById("existingBrokerage").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+              var existingBank =
+                parseFloat(
+                  (document.getElementById("existingBank").value || "").replace(
+                    /,/g,
+                    ""
+                  )
+                ) || 0;
+
+              var hasWillDD = (
+                document.getElementById("hasWill").value || ""
+              ).trim();
+
+              // Detailed vs. Not
+              var isDetailedOn =
+                document.getElementById("toggleDetailedFlow").checked;
+
+              // coverage for user
+              var coverageNeededUser =
+                dimeDebt +
+                annualIncome * dimeIncomeYears +
+                mortgageBalance +
+                educationCost;
+              var coverageGapUser = Math.max(
+                0,
+                coverageNeededUser - existingCoverage
+              );
+
+              // coverage for spouse
+              var coverageNeededSpouse = 0;
+              var coverageGapSpouse = 0;
+              if (maritalStatus === "Married") {
+                coverageNeededSpouse =
+                  dimeDebt +
+                  spouseAnnualIncome * dimeIncomeYears +
+                  mortgageBalance +
+                  educationCost;
+                coverageGapSpouse = Math.max(
+                  0,
+                  coverageNeededSpouse - spouseExistingCoverage
+                );
+              }
+
+              // Retirement calculations
+              var nestEggNeeded = (desiredRetIncome * 12) / 0.04;
+              var yearsToRetire = retirementAge - clientAge;
+              if (yearsToRetire < 0) yearsToRetire = 0;
+              var lumpsum7 = existing401k + existingIRA + existingBrokerage;
+              var futureAssets7 = futureValue(
+                lumpsum7,
+                currentSavingsMonthly,
+                yearsToRetire,
+                0.07
+              );
+              var futureBank = futureValue(
+                existingBank,
+                0,
+                yearsToRetire,
+                0.01
+              );
+              var futureAssets = futureAssets7 + futureBank;
+
+              var requiredMonthly = 0;
+              if (nestEggNeeded > 0 && yearsToRetire > 0) {
+                requiredMonthly = solveForMonthlyContribution(
+                  lumpsum7,
+                  yearsToRetire,
+                  nestEggNeeded - futureBank,
+                  0.07
+                );
+              }
+              var monthlyShortfall = Math.max(
+                0,
+                requiredMonthly - currentSavingsMonthly
+              );
+
+              // If detailed is on, read actual discretionary from #detDiscretionary
+              var discEl = document.getElementById("detDiscretionary");
+              var discretionaryIncome = 0;
+              if (isDetailedOn && discEl && discEl.value) {
+                discretionaryIncome =
+                  parseFloat(discEl.value.replace(/,/g, "")) || 0;
+              }
+
+              var extraNote = "";
+              if (monthlyShortfall > 0) {
+                if (discretionaryIncome > 0) {
+                  if (discretionaryIncome >= monthlyShortfall) {
+                    extraNote = `You can use your discretionary income of $${discretionaryIncome.toLocaleString()} to fully meet the shortfall of ${formatMoney(
+                      monthlyShortfall
+                    )}.`;
+                  } else {
+                    var neededExtra = monthlyShortfall - discretionaryIncome;
+                    extraNote = `
+             Your discretionary income is ${formatMoney(
+               discretionaryIncome
+             )}, but your shortfall is ${formatMoney(monthlyShortfall)}.<br>
+             Consider reducing expenses or increasing income by ${formatMoney(
+               neededExtra
+             )} per month.
+           `;
+                  }
+                } else {
+                  extraNote = `
+           Your shortfall is ${formatMoney(monthlyShortfall)}.<br>
+           Consider reducing expenses or increasing income to meet your savings goals.
+         `;
+                }
+              }
+
+              var coverageHTML = "";
+              if (maritalStatus === "Married") {
+                coverageHTML = `
+         <p><strong>User Coverage Needed:</strong> ${formatMoney(
+           coverageNeededUser
+         )},
+            Gap: ${formatMoney(coverageGapUser)}</p>
+         <p><strong>Spouse Coverage Needed:</strong> ${formatMoney(
+           coverageNeededSpouse
+         )},
+            Gap: ${formatMoney(coverageGapSpouse)}</p>
+       `;
+              } else {
+                coverageHTML = `
+         <p>
+           Needed: ${formatMoney(coverageNeededUser)},
+           Existing: ${formatMoney(existingCoverage)},
+           Gap: ${formatMoney(coverageGapUser)}
+         </p>
+       `;
+              }
+
+              var discretionaryHTML = "";
+              if (isDetailedOn) {
+                discretionaryHTML = `Discretionary Income: ${formatMoney(
+                  discretionaryIncome
+                )} <br><br>`;
+              }
+
+              // Emergency Fund
+              var efCalcMethod = document.getElementById(
+                "emergencyFundCalculation"
+              ).value;
+              var currentEF =
+                parseFloat(
+                  (
+                    document.getElementById("currentEmergencyFund").value || ""
+                  ).replace(/,/g, "")
+                ) || 0;
+
+              var efMin = 0,
+                efMax = 0;
+              if (efCalcMethod === "incomes") {
+                // If married, add spouse net if not detailed;
+                // but monthlyIncome might also include spouse if detailed => we treat monthlyIncome as "household"
+                var totalIncomes = monthlyIncome;
+                if (maritalStatus === "Married" && !isDetailedOn) {
+                  var spnEl = document.getElementById("spouseNetIncome");
+                  if (spnEl) {
+                    var sraw = spnEl.value.replace(/,/g, "");
+                    var sVal = parseFloat(sraw) || 0;
+                    totalIncomes += sVal;
+                  }
+                }
+                efMin = totalIncomes * 3;
+                efMax = totalIncomes * 6;
+              } else {
+                // default: based on monthlyExpenses
+                efMin = monthlyExpenses * 3;
+                efMax = monthlyExpenses * 6;
+              }
+
+              var recHTML = `
+       <!-- Overview -->
+       <div class="summary-box">
+         <h4>Overview</h4>
+         <p>
+           <strong>Name:</strong> ${clientName || "N/A"},<br>
+           <strong>Age:</strong> ${clientAge},<br>
+           <strong>Retirement Age:</strong> ${retirementAge},<br>
+           <strong>Will/Trust:</strong> ${hasWillDD || "N/A"}
+         </p>
+       </div>
+
+       <!-- 1. Increase Cash Flow -->
+       <div class="summary-box">
+         <h4>1. Increase Cash Flow</h4>
+         <p>
+           Net Monthly Income: ${formatMoney(monthlyIncome)} <br>
+           Monthly Expenses: ${formatMoney(monthlyExpenses)} <br>
+           ${discretionaryHTML}
+           We recommend saving an extra ${formatMoney(
+             monthlyShortfall
+           )} per month
+           to meet your retirement goals. <br><br>
+           ${extraNote}
+         </p>
+         <div class="chart-box">
+           <h4>Income vs. Needed Increase</h4>
+           <canvas id="cashFlowChart"></canvas>
+         </div>
+       </div>
+
+       <!-- 2. Debt Management -->
+       <div class="summary-box">
+         <h4>2. Debt Management</h4>
+         <p>
+           Mortgage: ${formatMoney(mortgageDebt)},<br>
+           Credit Card: ${formatMoney(creditCardDebt)},<br>
+           Auto Loan: ${formatMoney(autoLoanDebt)},<br>
+           Student Loan: ${formatMoney(studentLoanDebt)}
+         </p>
+         <p>Focus on highest-interest debt first; consider consolidation/refinancing if beneficial.</p>
+         <div class="chart-box">
+           <h4>Debt Distribution</h4>
+           <canvas id="debtChart"></canvas>
+         </div>
+       </div>
+
+       <!-- 3. Emergency Fund -->
+       <div class="summary-box">
+         <h4>3. Emergency Fund</h4>
+         <p>
+           Recommended 3–6 months: ${formatMoney(efMin)} – ${formatMoney(
+                efMax
+              )} <br>
+           Currently: ${formatMoney(currentEF)}
+         </p>
+         <div class="chart-box">
+           <h4>Emergency Fund Status</h4>
+           <canvas id="emergencyChart"></canvas>
+         </div>
+       </div>
+
+       <!-- 4. Proper Protection (DIME) -->
+       <div class="summary-box">
+         <h4>4. Proper Protection (DIME)</h4>
+         ${coverageHTML}
+         <p>Consider Term, IUL, or other coverage to fill any shortfall.</p>
+         <div class="chart-box">
+           <h4>Insurance Coverage</h4>
+           <canvas id="insuranceChart"></canvas>
+         </div>
+       </div>
+
+       <!-- 5. Build Wealth -->
+       <div class="summary-box">
+         <h4>5. Build Wealth</h4>
+         <p>
+           Desired Retirement Income: ${formatMoney(desiredRetIncome)}/mo <br>
+           Nest Egg Needed: ${formatMoney(nestEggNeeded)} <br>
+           Projected Future Assets: ${formatMoney(futureAssets)} <br>
+           Required Monthly Savings: ${formatMoney(requiredMonthly)} <br>
+           Current Monthly Savings: ${formatMoney(currentSavingsMonthly)} <br>
+           Shortfall in Monthly Savings: ${formatMoney(monthlyShortfall)}
+         </p>
+         <div class="chart-box">
+           <h4>Asset Growth Projection</h4>
+           <canvas id="assetChart"></canvas>
+         </div>
+         <div class="chart-box">
+           <h4>Nest Egg Needed vs. Projected</h4>
+           <canvas id="nestEggChart"></canvas>
+         </div>
+       </div>
+
+       <!-- 6. Preserve Wealth -->
+       <div class="summary-box">
+         <h4>6. Preserve Wealth</h4>
+         <p>A valid Will/Trust can help avoid probate, reduce taxes, and streamline asset transfers.</p>
+         <p>Will/Trust Status: ${hasWillDD || "N/A"}</p>
+
+         <div class="will-trust-container">
+           <div class="will-trust-box" style="border: 2px solid #2d7a2d; background-color: #e8f5e8;">
+             <h3 style="color: #2d7a2d;">With a Will &amp; Trust</h3>
+             <ul style="list-style: none; padding: 0; text-align: left; color: #333;">
+               <li>✅ Clear asset distribution</li>
+               <li>✅ Minimal legal fees</li>
+               <li>✅ Private and confidential</li>
+               <li>✅ Fast asset transfer</li>
+             </ul>
+           </div>
+           <div class="will-trust-box" style="border: 2px solid #a52a2a; background-color: #fbe8e8;">
+             <h3 style="color: #a52a2a;">Without a Plan</h3>
+             <ul style="list-style: none; padding: 0; text-align: left; color: #333;">
+               <li>❌ Delayed asset distribution</li>
+               <li>❌ High legal fees</li>
+               <li>❌ Public court records</li>
+               <li>❌ Lengthy probate process</li>
+             </ul>
+           </div>
+         </div>
+       </div>
+     `;
+
+              var recSection = document.getElementById(
+                "recommendationsSection"
+              );
+              if (recSection) recSection.innerHTML = recHTML;
+
+              // Create/Update Charts
+              createCashFlowChart(monthlyIncome, monthlyShortfall);
+              createDebtChart(
+                mortgageDebt,
+                creditCardDebt,
+                autoLoanDebt,
+                studentLoanDebt
+              );
+              createEmergencyChart(currentEF, efMin, efMax);
+              // For the insurance chart, let's combine user's + spouse's existing coverage as "Existing"
+              var totalExistingCoverage =
+                existingCoverage +
+                (maritalStatus === "Married" ? spouseExistingCoverage : 0);
+              createInsuranceChart(
+                Math.max(coverageNeededUser, coverageNeededSpouse),
+                totalExistingCoverage
+              );
+              createAssetChart(
+                lumpsum7,
+                currentSavingsMonthly,
+                yearsToRetire,
+                existingBank
+              );
+              createNestEggChart(nestEggNeeded, futureAssets);
+            };
+
+            function formatMoney(value) {
+              if (isNaN(value)) return "$0";
+              return (
+                "$" +
+                parseFloat(value).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })
+              );
+            }
+
+            function createCashFlowChart(income, shortfall) {
+              var canvas = document.getElementById("cashFlowChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (cashFlowChart) cashFlowChart.destroy();
+              var recommended = income + shortfall;
+              cashFlowChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                  labels: ["Current Income", "Recommended"],
+                  datasets: [
+                    {
+                      label: "Monthly Income",
+                      data: [income, recommended],
+                      backgroundColor: ["#007bff", "#F0AD4E"],
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                },
+              });
+            }
+
+            function createDebtChart(mortgage, cc, auto, student) {
+              var canvas = document.getElementById("debtChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (debtChart) debtChart.destroy();
+              debtChart = new Chart(ctx, {
+                type: "pie",
+                data: {
+                  labels: [
+                    "Mortgage",
+                    "Credit Card",
+                    "Auto Loan",
+                    "Student Loan",
+                  ],
+                  datasets: [
+                    {
+                      data: [mortgage, cc, auto, student],
+                      backgroundColor: [
+                        "#007bff",
+                        "#67b7ff",
+                        "#a1d3ff",
+                        "#cce9ff",
+                      ],
+                      borderColor: "#fff",
+                      borderWidth: 2,
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { position: "bottom" } },
+                },
+              });
+            }
+
+            function createEmergencyChart(currentEF, minEF, maxEF) {
+              var canvas = document.getElementById("emergencyChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (emergencyChart) emergencyChart.destroy();
+              emergencyChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                  labels: ["Current EF", "Min EF", "Max EF"],
+                  datasets: [
+                    {
+                      label: "Emergency Fund",
+                      data: [currentEF, minEF, maxEF],
+                      backgroundColor: ["#007bff", "#ffa500", "#ff4500"],
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                },
+              });
+            }
+
+            function createInsuranceChart(need, existing) {
+              var canvas = document.getElementById("insuranceChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (insuranceChart) insuranceChart.destroy();
+              insuranceChart = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                  labels: ["Gap", "Existing Coverage"],
+                  datasets: [
+                    {
+                      data: [Math.max(0, need - existing), existing],
+                      backgroundColor: ["#F08080", "#80C080"],
+                      borderColor: "#fff",
+                      borderWidth: 2,
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { position: "bottom" } },
+                },
+              });
+            }
+
+            function createAssetChart(
+              lumpsum7,
+              monthlySave,
+              years,
+              lumpsumBank
+            ) {
+              var canvas = document.getElementById("assetChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (assetChart) assetChart.destroy();
+              var dataPoints = [];
+              for (var i = 0; i <= years; i++) {
+                var fv7 = futureValue(lumpsum7, monthlySave, i, 0.07);
+                var fvBank = futureValue(lumpsumBank, 0, i, 0.01);
+                dataPoints.push(Math.round(fv7 + fvBank));
+              }
+              assetChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                  labels: [...Array(years + 1).keys()].map(function (y) {
+                    return "Year " + y;
+                  }),
+                  datasets: [
+                    {
+                      label: "Total Assets Over Time",
+                      data: dataPoints,
+                      borderColor: "#007bff",
+                      backgroundColor: "rgba(0,123,255,0.2)",
+                      fill: true,
+                      tension: 0.1,
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                },
+              });
+            }
+
+            function createNestEggChart(needed, projected) {
+              var canvas = document.getElementById("nestEggChart");
+              if (!canvas) return;
+              var ctx = canvas.getContext("2d");
+              if (nestEggChart) nestEggChart.destroy();
+              nestEggChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                  labels: ["Needed", "Projected"],
+                  datasets: [
+                    {
+                      label: "Nest Egg",
+                      data: [needed, projected],
+                      backgroundColor: ["#dc143c", "#007bff"],
+                    },
+                  ],
+                },
+                options: {
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                },
+              });
+            }
+
+            /******************************************************************************
+    GENERATE PDF
+   ******************************************************************************/
+            window.generatePDF = function () {
+              const { jsPDF } = window.jspdf;
+              const doc = new jsPDF({ unit: "pt", format: "letter" });
+              var recSection = document.getElementById(
+                "recommendationsSection"
+              );
+              if (!recSection) return;
+              var summaryBoxes = recSection.querySelectorAll(".summary-box");
+
+              function addWrappedText(
+                text,
+                fontSize = 11,
+                x = 40,
+                y = 60,
+                lineHeight = 14,
+                maxWidth = 515
+              ) {
+                doc.setFontSize(fontSize);
+                var lines = doc.splitTextToSize(text, maxWidth);
+                lines.forEach(function (line) {
+                  doc.text(line, x, y);
+                  y += lineHeight;
+                });
+                return y;
+              }
+              function addChart(canvas, x, y, maxWidth = 400) {
+                if (!canvas) return y;
+                var imgData = canvas.toDataURL("image/png", 1.0);
+                var cWidth = canvas.width;
+                var cHeight = canvas.height;
+                var printWidth = maxWidth;
+                var ratio = cHeight / cWidth;
+                if (
+                  y + printWidth * ratio >
+                  doc.internal.pageSize.getHeight() - 50
+                ) {
+                  doc.addPage();
+                  y = 60;
+                }
+                doc.addImage(
+                  imgData,
+                  "PNG",
+                  x,
+                  y,
+                  printWidth,
+                  printWidth * ratio
+                );
+                return y + printWidth * ratio + 20;
+              }
+
+              var yPos = 60;
+              var xPos = 40;
+              summaryBoxes.forEach(function (box, idx) {
+                if (idx > 0) {
+                  doc.addPage();
+                }
+                yPos = 60;
+                var titleEl = box.querySelector("h4");
+                var title = titleEl ? titleEl.innerText : `Section ${idx + 1}`;
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 120);
+                doc.text(title, xPos, yPos);
+                yPos += 20;
+
+                var fullText = box.innerText.trim();
+                if (titleEl) {
+                  fullText = fullText.replace(titleEl.innerText, "").trim();
+                }
+                doc.setTextColor(0, 0, 0);
+                yPos = addWrappedText(fullText, 11, xPos, yPos);
+
+                var charts = box.querySelectorAll("canvas");
+                charts.forEach(function (chartCanvas) {
+                  yPos = addChart(chartCanvas, xPos, yPos, 280);
+                });
+              });
+              doc.save("FinancialPlan.pdf");
+            };
+          })();
+        });
+      </script>
+      <meta charset="UTF-8" />
+      <title>Financial Planning Wizard</title>
+      <style>
+        /* -------------------------------------------
+   GLOBAL STYLES
+  ------------------------------------------- */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        .modern-financial-planner-container {
+          background: #000000;
+          padding: 40px 0;
+          display: flex;
+          justify-content: center;
+        }
+        .container {
+          max-width: 1100px;
+          width: 90%;
+          margin: 0 auto;
+          background: #000000;
+          border-radius: 12px;
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+          padding: 20px 50px 20px 20px;
+        }
+        h1,
+        h2,
+        h3 {
+          font-weight: 300;
+          margin-bottom: 10px;
+          color: #bdb76b;
+        }
+        h4 {
+          color: #bdb76b;
+          margin-bottom: 8px;
+        }
+        p,
+        label {
+          color: #f0f8ff;
+        }
+
+        /* -------------------------------------------
+   PROGRESS BAR
+  ------------------------------------------- */
+        .step-header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .progress-bar {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 30px;
+          position: relative;
+          flex-wrap: nowrap; /* single row on desktop */
+        }
+        .progress-bar::before {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: #f0f8ff;
+          transform: translateY(-50%);
+          z-index: 1;
+        }
+        .progress-step {
+          z-index: 2;
+          background: #f0f8ff;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          position: relative;
+          color: #000000;
+          text-align: center;
+          line-height: 30px;
+          font-size: 14px;
+          flex-shrink: 0;
+          cursor: pointer;
+        }
+        .progress-step.active {
+          background: #bdb76b;
+        }
+        .progress-step::after {
+          content: attr(data-label);
+          position: absolute;
+          top: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 12px;
+          color: #ffffff;
+          width: max-content;
+          white-space: nowrap;
+        }
+
+        /* -------------------------------------------
+   STEP CONTENT
+  ------------------------------------------- */
+        .step-content {
+          display: none;
+        }
+        .step-content.active {
+          display: block;
+        }
+        .form-group {
+          margin-bottom: 20px;
+        }
+        label {
+          display: block;
+          margin-bottom: 4px;
+          font-weight: 500;
+        }
+        input[type="text"],
+        select {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #aaa;
+          border-radius: 4px;
+          font-size: 14px;
+          color: #333;
+        }
+
+        /* Show/hide the detailed cash flow panel */
+        .detailed-section {
+          border: 1px solid #ccc;
+          padding: 15px;
+          border-radius: 6px;
+          margin-top: 15px;
+          background: #3a3939;
+          display: none;
+        }
+        .detailed-section.show {
+          display: block;
+        }
+
+        /* -------------------------------------------
+   BUTTONS
+  ------------------------------------------- */
+        .btn-bar {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 30px;
+        }
+        .btn {
+          background: #bdb76b;
+          border: none;
+          padding: 12px 20px;
+          color: #000000;
+          border-radius: 4px;
+          text-transform: uppercase;
+          font-weight: 600;
+          letter-spacing: 1px;
+          cursor: pointer;
+        }
+        .btn:hover {
+          background: #bdb76b;
+        }
+
+        /* -------------------------------------------
+   RESULTS PAGE
+  ------------------------------------------- */
+        #resultsPage {
+          margin-top: 20px;
+          width: 100%;
+          margin: 0 auto;
+        }
+        .summary-box {
+          background: #000000;
+          padding: 20px;
+          margin: 20px 0;
+          border-radius: 8px;
+        }
+        .summary-box h4 {
+          margin-bottom: 10px;
+        }
+        .chart-box {
+          background: #3a3939;
+          border-radius: 8px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+          padding: 20px;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .chart-box canvas {
+          max-width: 100%;
+          max-height: 360px;
+        }
+
+        /* Redesigned Will & Trust Section */
+        .will-trust-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 20px;
+          justify-content: space-between;
+        }
+        .will-trust-box {
+          flex: 1 1 320px;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+        }
+        .will-trust-box h3 {
+          margin-bottom: 8px;
+        }
+
+        /* -------------------------------------------
+   MOBILE RESPONSIVENESS
+   -> 2 rows -> 4 steps each
+  ------------------------------------------- */
+        @media (max-width: 768px) {
+          .container {
+            padding: 15px 20px 15px 15px;
+            color: #bdb76b;
+          }
+          h1 {
+            font-size: 1.5rem;
+          }
+          h2,
+          h3 {
+            font-size: 1.2rem;
+          }
+          .progress-bar {
+            flex-wrap: wrap;
+            justify-content: center;
+            color: #bdb76b;
+          }
+          .progress-bar::before {
+            display: none;
+            color: #bdb76b;
+          }
+          .progress-step {
+            margin: 0 15px 50px;
+            width: 30px;
+            height: 30px;
+            color: #bdb76b;
+          }
+          .progress-step::after {
+            font-size: 10px;
+            top: 35px;
+            color: #bdb76b;
+          }
+        }
+        @media (min-width: 992px) {
+          #step1.step-content,
+          #step2.step-content,
+          #step3.step-content,
+          #step4.step-content,
+          #step5.step-content,
+          #step6.step-content,
+          #step7.step-content {
+            max-width: 50%;
+            margin: 0 auto;
+          }
+          #step8.step-content {
+            max-width: 100%;
+            margin: 0 auto;
+          }
+        }
+      </style>
+
+      <div class="modern-financial-planner-container">
+        <div class="container">
+          <!-- Step Header + Progress Bar -->
+          <div class="step-header">
+            <h1>Financial Planning Wizard</h1>
+            <h3>Step-by-Step Wizard</h3>
+          </div>
+
+          <div class="progress-bar">
+            <!-- Clicking on these steps now lets you jump to that step directly -->
+            <div class="progress-step active" data-label="Info"></div>
+            <div class="progress-step" data-label="Cash Flow"></div>
+            <div class="progress-step" data-label="Debt"></div>
+            <div class="progress-step" data-label="Emergency"></div>
+            <div class="progress-step" data-label="Protection"></div>
+            <div class="progress-step" data-label="Build"></div>
+            <div class="progress-step" data-label="Preserve"></div>
+            <div class="progress-step" data-label="Results"></div>
+          </div>
+
+          <!-- STEP 1: PERSONAL INFO -->
+          <div id="step1" class="step-content active">
+            <h2>1. Personal Information</h2>
+            <div class="form-group">
+              <label for="clientName">Name</label>
+              <input type="text" id="clientName" placeholder="John Doe" />
+            </div>
+            <div class="form-group">
+              <label for="clientAge">Current Age</label>
+              <input
+                type="text"
+                id="clientAge"
+                placeholder="30"
+                oninput="updateRetirementIncome()"
+              />
+            </div>
+            <div class="form-group">
+              <label for="retirementAge">Retirement Age</label>
+              <input
+                type="text"
+                id="retirementAge"
+                placeholder="65"
+                oninput="updateRetirementIncome()"
+              />
+            </div>
+            <div class="form-group">
+              <label for="maritalStatus">Marital Status</label>
+              <select id="maritalStatus" onchange="toggleSpouseIncomeField()">
+                <option value="">--Select--</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dependents">Number of Dependents</label>
+              <input
+                type="text"
+                id="dependents"
+                placeholder="0"
+                oninput="autoFillEducationCost()"
+              />
+            </div>
+            <p style="font-size: 0.9em; color: #666">
+              <em
+                >The system will estimate education costs based on the average
+                for a 4-year college degree.</em
+              >
+            </p>
+            <div class="btn-bar">
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 2: INCREASE CASH FLOW -->
+          <div id="step2" class="step-content">
+            <h2>2. Increase Cash Flow</h2>
+            <div class="form-group">
+              <label for="monthlyIncome"
+                >Monthly Income (Net) <small>(auto/override)</small></label
+              >
+              <input
+                type="text"
+                id="monthlyIncome"
+                placeholder="5000"
+                oninput="updateAnnualIncome(); updateRetirementIncome();"
+              />
+            </div>
+
+            <!-- NEW: Spouse Net Income field (only shows if Married & detailed not checked) -->
+            <div
+              class="form-group"
+              id="spouseNetIncomeGroup"
+              style="display: none"
+            >
+              <label for="spouseNetIncome">Spouse Monthly Net Income</label>
+              <input
+                type="text"
+                id="spouseNetIncome"
+                placeholder="3000"
+                oninput="updateAnnualIncome(); updateRetirementIncome();"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="monthlyExpenses"
+                >Monthly Expenses (Sum) <small>(auto/override)</small></label
+              >
+              <input
+                type="text"
+                id="monthlyExpenses"
+                placeholder="4000"
+                oninput="updateRetirementIncome()"
+              />
+            </div>
+            <div class="form-group">
+              <label for="currentSavingsMonthly"
+                >Current Monthly Savings ($)</label
+              >
+              <input type="text" id="currentSavingsMonthly" placeholder="500" />
+            </div>
+            <div class="form-group">
+              <label for="desiredRetIncome"
+                >Estimated Retirement Income/Month ($)</label
+              >
+              <input
+                type="text"
+                id="desiredRetIncome"
+                placeholder="auto-calc"
+                disabled=""
+              />
+            </div>
+            <p style="font-size: 0.9em; color: #666">
+              <em>
+                Auto-calculated from your monthly expenses, grown by 3.5% yearly
+                until retirement,<br />
+                then reduced by 30% for Social Security.
+              </em>
+            </p>
+
+            <!-- Toggle for Detailed Cash Flow -->
+            <div class="form-group">
+              <input
+                type="checkbox"
+                id="toggleDetailedFlow"
+                onclick="toggleDetailedFlow()"
+              />
+              <label for="toggleDetailedFlow" style="display: inline"
+                >Enable Detailed Cash Flow &amp; Discretionary Income</label
+              >
+            </div>
+
+            <!-- Detailed Cash Flow Section -->
+            <div id="detailedCashFlow" class="detailed-section">
+              <h4>Detailed Cash Flow &amp; Discretionary Income</h4>
+              <div style="margin-top: 1em"><strong>Your Income</strong></div>
+              <div class="form-group">
+                <label>Gross Amount Paid (Monthly)</label>
+                <input
+                  type="text"
+                  id="yourGross"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Federal Tax Withholding</label>
+                <input
+                  type="text"
+                  id="yourFedTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>State Tax Withholding</label>
+                <input
+                  type="text"
+                  id="yourStateTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Local Tax Withholding</label>
+                <input
+                  type="text"
+                  id="yourLocalTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Other Taxes &amp; Withholding</label>
+                <input
+                  type="text"
+                  id="yourOtherTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>FICA</label>
+                <input
+                  type="text"
+                  id="yourFica"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Medicare</label>
+                <input
+                  type="text"
+                  id="yourMedicare"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Insurance &amp; Benefits</label>
+                <input
+                  type="text"
+                  id="yourInsurance"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Company Retirement Savings</label>
+                <input
+                  type="text"
+                  id="yourRetirement"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+
+              <div style="margin-top: 1em">
+                <strong>Spouse's Income (Optional)</strong>
+              </div>
+              <div class="form-group">
+                <label>Gross Amount Paid (Monthly)</label>
+                <input
+                  type="text"
+                  id="spouseGross"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Federal Tax Withholding</label>
+                <input
+                  type="text"
+                  id="spouseFedTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>State Tax Withholding</label>
+                <input
+                  type="text"
+                  id="spouseStateTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Local Tax Withholding</label>
+                <input
+                  type="text"
+                  id="spouseLocalTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Other Taxes &amp; Withholding</label>
+                <input
+                  type="text"
+                  id="spouseOtherTax"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>FICA</label>
+                <input
+                  type="text"
+                  id="spouseFica"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Medicare</label>
+                <input
+                  type="text"
+                  id="spouseMedicare"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Insurance &amp; Benefits</label>
+                <input
+                  type="text"
+                  id="spouseInsurance"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Company Retirement Savings</label>
+                <input
+                  type="text"
+                  id="spouseRetirement"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+
+              <div style="margin-top: 1em">
+                <strong>Other Income (Monthly)</strong>
+              </div>
+              <div class="form-group">
+                <label>Other Income</label>
+                <input
+                  type="text"
+                  id="otherIncome"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+
+              <div style="margin-top: 1em">
+                <strong>Detailed Monthly Expenses (Optional)</strong>
+              </div>
+              <div class="form-group">
+                <label>Mortgage / House Payment</label>
+                <input
+                  type="text"
+                  id="detMortgage"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Auto Payments (total)</label>
+                <input
+                  type="text"
+                  id="detAuto"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Credit Card Payments</label>
+                <input
+                  type="text"
+                  id="detCreditCards"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label
+                  >Utilities (Electric, Gas, Water, Cable, Phone,
+                  Internet)</label
+                >
+                <input
+                  type="text"
+                  id="detUtilities"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Food &amp; General Expenses</label>
+                <input
+                  type="text"
+                  id="detFood"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Insurance (Auto, Life, Health, Home, etc.)</label>
+                <input
+                  type="text"
+                  id="detInsurance"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Maintenance, Medical, Childcare, Travel, etc.</label>
+                <input
+                  type="text"
+                  id="detMaintenance"
+                  placeholder="0"
+                  oninput="recalcDetailedCashFlow()"
+                />
+              </div>
+
+              <div class="form-group">
+                <label><strong>Estimated Discretionary Income</strong></label>
+                <input
+                  type="text"
+                  id="detDiscretionary"
+                  placeholder="$0"
+                  disabled=""
+                />
+              </div>
+            </div>
+
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: DEBT MANAGEMENT -->
+          <div id="step3" class="step-content">
+            <h2>3. Debt Management</h2>
+            <div class="form-group">
+              <label for="mortgageDebt">Mortgage Debt ($)</label>
+              <input type="text" id="mortgageDebt" placeholder="200000" />
+            </div>
+            <div class="form-group">
+              <label for="creditCardDebt">Credit Card Debt ($)</label>
+              <input type="text" id="creditCardDebt" placeholder="8000" />
+            </div>
+            <div class="form-group">
+              <label for="autoLoanDebt">Auto Loan Debt ($)</label>
+              <input type="text" id="autoLoanDebt" placeholder="15000" />
+            </div>
+            <div class="form-group">
+              <label for="studentLoanDebt">Student Loan Debt ($)</label>
+              <input type="text" id="studentLoanDebt" placeholder="30000" />
+            </div>
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: EMERGENCY FUND -->
+          <div id="step4" class="step-content">
+            <h2>4. Emergency Fund</h2>
+            <div class="form-group">
+              <label for="currentEmergencyFund"
+                >Current Emergency Fund ($)</label
+              >
+              <input type="text" id="currentEmergencyFund" placeholder="5000" />
+            </div>
+
+            <div class="form-group">
+              <label for="emergencyFundCalculation"
+                >Emergency Fund Calculation</label
+              >
+              <select id="emergencyFundCalculation">
+                <option value="expenses" selected="">
+                  Based on Monthly Expenses (3-6 mos)
+                </option>
+                <option value="incomes">Based on Net Incomes (3-6 mos)</option>
+              </select>
+            </div>
+
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 5: PROPER PROTECTION (DIME) -->
+          <div id="step5" class="step-content">
+            <h2>5. Proper Protection (DIME)</h2>
+            <p style="font-size: 14px; margin-bottom: 20px">
+              Debt + (Income Replacement) + Mortgage + Education
+            </p>
+            <div class="form-group">
+              <label for="existingCoverage"
+                >Existing Life Insurance ($, You)</label
+              >
+              <input type="text" id="existingCoverage" placeholder="100000" />
+            </div>
+            <div class="form-group">
+              <label for="spouseExistingCoverage"
+                >Existing Life Insurance ($, Spouse)</label
+              >
+              <input type="text" id="spouseExistingCoverage" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label for="dimeDebt">Total Debt (D) - auto from Step 3</label>
+              <input type="text" id="dimeDebt" placeholder="Auto" disabled="" />
+            </div>
+
+            <div class="form-group">
+              <label for="annualIncome"
+                >Annual Income ($) - auto from Step 2 (You)</label
+              >
+              <input
+                type="text"
+                id="annualIncome"
+                placeholder="auto"
+                disabled=""
+              />
+            </div>
+
+            <!-- NEW / MODIFIED FOR SPOUSE ANNUAL INCOME -->
+            <div
+              class="form-group"
+              id="spouseAnnualIncomeContainer"
+              style="display: none"
+            >
+              <label for="spouseAnnualIncome"
+                >Annual Income ($, Spouse) - auto from Step 2</label
+              >
+              <input
+                type="text"
+                id="spouseAnnualIncome"
+                placeholder="auto"
+                disabled=""
+              />
+            </div>
+            <!-- END new spouse annual income field -->
+
+            <div class="form-group">
+              <label for="dimeIncome">Income Years (I)</label>
+              <input
+                type="text"
+                id="dimeIncome"
+                placeholder="default 10 years"
+              />
+            </div>
+            <div class="form-group">
+              <label for="mortgageBalance"
+                >Mortgage (M) - auto from Step 3</label
+              >
+              <input
+                type="text"
+                id="mortgageBalance"
+                placeholder="Auto"
+                disabled=""
+              />
+            </div>
+            <div class="form-group">
+              <label for="educationCost">
+                Education (E) -
+                <span style="font-size: 0.9em; color: #666">
+                  <em
+                    >Based on avg. 4-year college cost times # of dependents</em
+                  >
+                </span>
+              </label>
+              <input
+                type="text"
+                id="educationCost"
+                placeholder="Auto"
+                disabled=""
+              />
+            </div>
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 6: BUILD WEALTH -->
+          <div id="step6" class="step-content">
+            <h2>6. Build Wealth</h2>
+            <div class="form-group">
+              <label for="existing401k">401(k) Balance ($, grows ~7%)</label>
+              <input type="text" id="existing401k" placeholder="50000" />
+            </div>
+            <div class="form-group">
+              <label for="existingIRA">IRA Balance ($, grows ~7%)</label>
+              <input type="text" id="existingIRA" placeholder="20000" />
+            </div>
+            <div class="form-group">
+              <label for="existingBrokerage"
+                >Brokerage/Stocks ($, grows ~7%)</label
+              >
+              <input type="text" id="existingBrokerage" placeholder="10000" />
+            </div>
+            <div class="form-group">
+              <label for="existingBank">Bank Balance ($, grows ~1%)</label>
+              <input type="text" id="existingBank" placeholder="5000" />
+            </div>
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 7: PRESERVE WEALTH -->
+          <div id="step7" class="step-content">
+            <h2>7. Preserve Wealth</h2>
+            <div class="form-group">
+              <label for="hasWill">Do you have a Will/Trust? (Yes/No)</label>
+              <select id="hasWill">
+                <option value="">--Select--</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="nextStep()">Next</button>
+            </div>
+          </div>
+
+          <!-- STEP 8: RESULTS PAGE -->
+          <div id="step8" class="step-content">
+            <h2>8. Results &amp; Summary</h2>
+            <div id="resultsPage">
+              <div id="recommendationsSection"></div>
+            </div>
+            <div class="btn-bar">
+              <button class="btn" onclick="prevStep()">Prev</button>
+              <button class="btn" onclick="generatePDF()">Download PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart.js -->
+
+      <!-- jsPDF -->
+    </div>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/jquery-1.8.3.min.js"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/jquery.easing.1.3.js"
+      type="text/javascript"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://zybrzeus.com/builder/elements/js-files/jquery.common.min.js"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/ticker.js"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/plugins/datetimepicker/index.js"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/custom1.js?v=1.8"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/assets/js/smoothscroll.min.js"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/assets/js/appear.min.js"
+      type="text/javascript"
+    ></script>
+    <script src="https://zybrzeus.com/builder/elements/js-files/jquery.ui.touch-punch.min.js"></script>
+    <script src="https://zybrzeus.com/builder/elements/js-files/bootstrap.min.js"></script>
+    <script src="https://zybrzeus.com/builder/elements/js-files/bootstrap-switch.js"></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/custom3.js?v=1.8"
+      type="text/javascript"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/js-files/plugins/datetimepicker/index.css"
+    />
+    <script
+      src="https://zybrzeus.com/builder/elements/js-files/plugins/snackbar/snackbar.js"
+      type="text/javascript"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://zybrzeus.com/builder/elements/js-files/plugins/snackbar/snackbar.css"
+    />
+
+    <script
+      src="https://zybrzeus.com/builder/elements/assets/js/appear.min.js?v=2.0"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://zybrzeus.com/builder/elements/assets/js/animations.js?v=2.2"
+      type="text/javascript"
+    ></script>
+  </body>
+</html>
